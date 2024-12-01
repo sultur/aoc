@@ -28,10 +28,12 @@ fn main() {
     right.sort();
 
     // Part 1
-    // println!(
-    //     "{}",
-    //     zip(left, right).map(|(l, r)| l.abs_diff(r)).sum::<u64>()
-    // );
+    println!(
+        "{}",
+        zip(&left, &right)
+            .map(|(&l, &r)| l.abs_diff(r))
+            .sum::<u64>()
+    );
 
     // Part 2
     println!("{}", left.iter().fold(0, |acc, n| acc + n * counter[n]));
