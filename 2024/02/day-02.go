@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -11,7 +12,7 @@ import (
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 
-	var i = 0
+	report_count := 0
 	c := make(chan bool)
 	for {
 		scanner.Scan()
@@ -19,48 +20,54 @@ func main() {
 		if len(line) == 0 {
 			break
 		}
-		i++
-		// Start parsing line
-		go is_report_safe(line, c)
+		// Convert to list of numbers
+		raw_nums := strings.Fields(line)
+		nums := make([]int, len(raw_nums))
+		for i, n := range raw_nums {
+			nums[i], _ = strconv.Atoi(n)
+		}
+
+		report_count++
+		go is_report_safe(nums, c)
 	}
 
-	var safe_lines = 0
-	for ; i > 0; i-- {
+	safe_reports := 0
+	for ; report_count > 0; report_count-- {
 		if <-c {
-			safe_lines++
+			safe_reports++
 		}
 	}
-	fmt.Println(safe_lines)
+	fmt.Println(safe_reports)
 }
 
-func is_report_safe(line string, c chan bool) {
-	var nums = strings.Split(line, " ")
-	var prev_num, _ = strconv.ParseInt(nums[0], 10, 0)
-
-	var is_increasing = false
-	var is_decreasing = false
-	var is_safe = true
-
-	var curr_num int64
-	var diff int64
-	for i := 1; i < len(nums); i++ {
-		curr_num, _ = strconv.ParseInt(nums[i], 10, 0)
-		diff = prev_num - curr_num
-		if diff == 0 || diff < -3 || diff > 3 {
-			is_safe = false
-			break
-		} else if diff > 0 {
-			is_increasing = true
-		} else {
-			is_decreasing = true
+func is_report_safe(nums []int, c chan bool) {
+	report_is_safe := true
+	i := check_report(nums)
+	if i >= 0 {
+		report_is_safe = false
+		// Inefficient
+		for j := max(i-2, 0); j < min(i+1, len(nums)); j++ {
+			if check_report(slices.Concat(nums[:j], nums[j+1:])) < 0 {
+				report_is_safe = true
+				break
+			}
 		}
-		if is_increasing && is_decreasing {
-			is_safe = false
-			break
-		}
-		prev_num = curr_num
 	}
+	c <- report_is_safe
+}
 
-	// fmt.Println(line, is_safe)
-	c <- is_safe
+func check_report(nums []int) int {
+	is_increasing := nums[0] < nums[1]
+
+	for i := 1; i < len(nums); i++ {
+		prev := nums[i-1]
+		curr := nums[i]
+		diff := curr - prev
+		if !((diff > 0 && diff < 4 && is_increasing) ||
+			(diff < 0 && diff > -4 && !is_increasing)) {
+			fmt.Println(nums, "unsafe at index", i)
+			return i
+		}
+	}
+	return -1
 }
