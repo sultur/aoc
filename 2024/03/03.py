@@ -10,6 +10,6 @@ text = sys.stdin.read()
 print(sum(int(m.group(1)) * int(m.group(2)) for m in mul_re.finditer(text)))
 
 # Part 2
-text = "".join(dont_do_re.split(text))
+text = " ".join(dont_do_re.split(text))
 print(sum(int(m.group(1)) * int(m.group(2)) for m in mul_re.finditer(text)))
 
