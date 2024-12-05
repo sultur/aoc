@@ -48,12 +48,12 @@ fn main() {
     let mut p1: usize = 0;
     let mut p2: usize = 0;
     let mut has_occurred: Vec<bool>;
-    let mut halfway: usize;
+    let mut middle: usize;
 
     for mut update in updates {
-        halfway = update.len() / 2;
+        middle = update.len() / 2;
         // Invalid report if any number in successors[curr] has already occurred in list
-        has_occurred = vec![false; MAX_NUM]; // TODO: try using bit vector?
+        has_occurred = vec![false; MAX_NUM];
         let mut valid = true;
         for &curr in update.iter() {
             // Mark as having occurred
@@ -65,28 +65,25 @@ fn main() {
             }
         }
         if valid {
-            p1 += update[halfway];
-        } else {
-            // Re-order first half of update to make it valid
-            let mut i = 0;
-            while i <= halfway {
-                let curr = update[i];
-                match update.iter().rposition(|x| predecessors[curr].contains(x)) {
-                    Some(j) => {
-                        if j > i {
-                            update.remove(i);
-                            update.insert(j, curr);
-                        } else {
-                            i += 1;
-                        }
-                    }
-                    None => {
-                        i += 1;
-                    }
+            p1 += update[middle];
+            continue;
+        }
+        // Invalid report
+        // Re-order first half of update to make it valid
+        let mut i = 0;
+        while i <= middle {
+            let curr = update[i];
+            if let Some(j) = update.iter().rposition(|x| predecessors[curr].contains(x)) {
+                if j > i {
+                    // Predecessor occurs after curr, insert curr after predecessor
+                    // and increment middle instead of removing curr
+                    update.insert(j + 1, curr);
+                    middle += 1;
                 }
             }
-            p2 += update[halfway];
+            i += 1;
         }
+        p2 += update[middle];
     }
     println!("{p1}");
     println!("{p2}");
