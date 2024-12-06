@@ -48,29 +48,7 @@ def next_pos(row, col, direction):
     return (row + change_row, col + change_col)
 
 
-def guard_trail(row, col, direction):
-    yield (row, col)
-    while True:
-        # Calculate next coordinate
-        next_row, next_col = next_pos(row, col, direction)
-        if not is_in_bounds(next_row, next_col):
-            # Guard leaves the map
-            break
-        if (next_row, next_col) in OBSTACLES:
-            # Guard hits an obstacle and turns right/clockwise
-            direction = turn_clockwise(direction)
-            continue
-        row, col = next_row, next_col
-        yield (row, col)
-
-
-# Part 1
-print(len(set(guard_trail(row, col, direction))))
-# (The set is inefficient)
-
-
-# Part 2
-def guard_trail2(row, col, direction, obstacles=OBSTACLES):
+def guard_trail(row, col, direction, obstacles=OBSTACLES):
     yield (row, col), direction
     while True:
         # Calculate next coordinate
@@ -86,6 +64,12 @@ def guard_trail2(row, col, direction, obstacles=OBSTACLES):
         yield (row, col), direction
 
 
+# Part 1
+guard_path = list(guard_trail(row, col, direction))
+print(len(set((pos for pos, _ in guard_path))))
+
+
+# Part 2
 def goes_into_loop(iterator):
     earlier = set()
     for x in iterator:
@@ -96,10 +80,12 @@ def goes_into_loop(iterator):
 
 
 spots = set()
-guard_path = list(guard_trail2(row, col, direction))
-for i, (pos, dir) in enumerate(guard_path[1:]):
-    (prev_x, prev_y), prev_dir = guard_path[i]
-    if goes_into_loop(guard_trail2(row,col,direction, OBSTACLES | {pos})):
+for pos, _ in guard_path[1:]:
+    if (
+        pos != start_pos
+        and pos not in spots
+        and goes_into_loop(guard_trail(row, col, direction, OBSTACLES | {pos}))
+    ):
         spots.add(pos)
 
-print(len([x for x in spots if x != start_pos]))
+print(len(spots))
