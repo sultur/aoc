@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import operator
-import itertools
+from functools import partial
 
 IN = sys.stdin.read()
 
@@ -12,35 +12,31 @@ def parse_line(line):
 
 
 formulas = tuple(parse_line(lin) for lin in IN.splitlines())
-
-OPERATORS = (operator.mul, operator.add)
-
-
-def operator_assignments(head, body, operators):
-    return itertools.product(operators, repeat=len(body) - 1)
+ops = (operator.mul, operator.add)
 
 
-def get_calibration_result(formulas, operators):
+def get_calibration_result(formulas, ops):
     total_calibration_result = 0
     for head, body in formulas:
-        for op_combi in operator_assignments(head, body, operators):
-            acc = body[0]
-            for ix, op in enumerate(op_combi, start=1):
-                acc = op(acc, body[ix])
-                if acc > head:
-                    break
-            if acc == head:
-                total_calibration_result += head
-                break
+        less_than_head = partial(operator.ge, head)
+        results = [body[0]]
+        for n in body[1:]:
+            results = list(
+                filter(less_than_head, (op(x, n) for x in results for op in ops))
+            )
+        if head in results:
+            total_calibration_result += head
     return total_calibration_result
 
 
 # Part 1
-print(get_calibration_result(formulas, OPERATORS))
+print(get_calibration_result(formulas, ops))
 
 
 # Part 2
-concat = lambda i1, i2: int(str(i1) + str(i2))
+def concat(a, b):
+    return int(str(a) + str(b))
 
-new_operators = (*OPERATORS, concat)
-print(get_calibration_result(formulas, new_operators))
+
+ops = (*ops, concat)
+print(get_calibration_result(formulas, ops))
