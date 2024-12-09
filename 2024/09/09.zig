@@ -1,9 +1,6 @@
-// Import standard library, reachable through the "std" constant.
 const std = @import("std");
 const print = std.debug.print;
 
-// Usual hello world.
-// syntax: [pub] fn <function-name>(<arguments>) <return-type> { <body> }
 pub fn main() !void {
     // Create buffer on stack
     var buffer: [20_001]u8 = undefined;
@@ -26,13 +23,11 @@ pub fn main() !void {
 inline fn conv(b: u8) u8 {
     return b - 48; // Convert "0" -> 0, "1" -> 1, ...
 }
-inline fn rconv(b: u8) u8 {
-    return b + 48; // Convert 0 -> "0", 1 -> "1", ...
-}
 
 inline fn min(a: u8, b: u8) u8 {
     return if (b < a) b else a;
 }
+
 /// Return sum of (a, a+1, ..., b-1, b)
 inline fn sum_range(a: usize, b: usize) usize {
     return ((a + b - 1) * (b - a)) / 2;
@@ -49,7 +44,7 @@ fn calc_checksum(diskmap: []u8, length: usize) usize {
     var rblocks: u8 = conv(diskmap[r]); // Number of blocks left to allocate for file on right
 
     var alloc: u8 = 0;
-    var empty = false; // Does diskmap[l] represent a sequence of empty blocks?
+    var empty = false; // Whether diskmap[l] represent a sequence of empty blocks
     var checksum: usize = 0;
 
     while (l < r) {
