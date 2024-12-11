@@ -1,4 +1,5 @@
 import sys
+import math
 from collections import defaultdict
 
 IN = sys.stdin.read()
@@ -10,14 +11,13 @@ stones_after_blinks = defaultdict(lambda: [None for _ in range(NUM_BLINKS)])
 
 
 def one_step(n: int) -> list[str]:
-    sn = str(n)
-    l = len(sn)
-    if l % 2 == 0:
-        n1, n2 = sn[: l // 2], sn[l // 2 :]
-        return [int(n1), int(n2)]
     if n == 0:
         return [1]
-    return [int(n) * 2024]
+    l = int(math.log10(n))+1
+    if l % 2 == 0:
+        n1, n2 = divmod(n, pow(10,l//2))
+        return [n1, n2]
+    return [n * 2024]
 
 
 def calc_num_stones(stone: int, blinks_left: int) -> int:
