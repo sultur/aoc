@@ -1,3 +1,3 @@
-module aoc/day-02
+module aoc/d02
 
 go 1.23

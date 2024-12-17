@@ -65,7 +65,7 @@ func check_report(nums []int) int {
 		diff := curr - prev
 		if !((diff > 0 && diff < 4 && is_increasing) ||
 			(diff < 0 && diff > -4 && !is_increasing)) {
-			fmt.Println(nums, "unsafe at index", i)
+			// fmt.Println(nums, "unsafe at index", i)
 			return i
 		}
 	}
