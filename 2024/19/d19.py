@@ -24,10 +24,9 @@ def ways_to_design(avail, design):
     if design in avail:
         possible += 1
     for i in range(1, len(design)):
-        if design[:i] not in avail:
-            continue
-        last_designs = ways_to_design(avail, design[i:])
-        possible += last_designs
+        if design[:i] in avail:
+            last_designs = ways_to_design(avail, design[i:])
+            possible += last_designs
     CACHE[design] = possible
     return possible
 
