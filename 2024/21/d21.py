@@ -5,6 +5,8 @@ import networkx as nx
 from pathlib import Path
 from itertools import product, pairwise, groupby, chain
 
+# TODO: Unfinished part 2
+
 Point = tuple[int, int]
 
 
@@ -80,14 +82,11 @@ def code_to_dcodes(
     for l1, l2 in pairwise("A" + dcode):
         curr = char_to_point[l1]
         target = char_to_point[l2]
-        best_move_seq = None
-        nr_best_moves = float("inf")
-        for path in nx.all_shortest_paths(graph, curr, target):
-            moves = [translate_to_dcode(a, b) for a, b in pairwise(path)]
-            if len(list(groupby(moves))) < nr_best_moves:
-                best_move_seq = moves
-        assert best_move_seq is not None
-        seq += "".join(best_move_seq) + "A"
+        moves = (
+            translate_to_dcode(a, b)
+            for a, b in pairwise(nx.shortest_path(graph, curr, target))
+        )
+        seq += "".join(moves) + "A"
     return seq
 
 
@@ -112,44 +111,6 @@ class State(NamedTuple):
     r1: Point
     r2: Point
     r3: Point
-
-
-def dcode_sequences_s_to_e(
-    g: "nx.Graph[Point]", s: Point, e: Point
-) -> Generator[list[str], None, None]:
-    for p in nx.all_shortest_paths(g, s, e):
-        yield [translate_to_dcode(a, b) for a, b in pairwise(p)] + ["A"]
-
-
-def prepend_A(x: list[str]):
-    return ["A"] + x
-
-
-def shortest_path_k1_to_k2(k1: str, k2: str):
-    shortest_path = None
-    shortest_path_len = float("inf")
-    for path1 in dcode_sequences_s_to_e(KEYPAD_GRAPH, KEYPAD_POS[k1], KEYPAD_POS[k2]):
-        path3 = ""
-        # path1 is the sequence of dcodes needed to get the keypad robot input k
-        # Prepend the current position of the second robot to that sequence
-        for p1, p2 in pairwise(["A"] + path1 + ["A"]):
-            for path2 in dcode_sequences_s_to_e(DPAD_GRAPH, DPAD_POS[p1], DPAD_POS[p2]):
-                path3 += "".join(path2) + "A"
-        if len(path3) < shortest_path_len:
-            shortest_path = path3
-            shortest_path_len = len(shortest_path)
-
-    assert shortest_path is not None
-    return shortest_path
-
-
-def find_dpad_seq(kc: str) -> str:
-    seq = ""
-    for k1, k2 in pairwise(prepend_A(list(kc))):
-        path = shortest_path_k1_to_k2(k1, k2)
-        seq += path + "A"
-
-    return seq
 
 
 def retain_fewest_turns(move_seqs: list[list[str]]):
@@ -227,21 +188,28 @@ def main():
     keycodes = get_input()
     complexity = 0
 
-    print("Robot 1 needs to input", 0, "on keypad")
-    print("Robot 1 needs to do moves:", keycode_to_dcodes("0"))
-    print("Robot 2 needs to do moves:", dcodes_to_dcodes(keycode_to_dcodes("0")))
-    print(
-        "Robot 3 needs to do moves:",
-        dcodes_to_dcodes(dcodes_to_dcodes(keycode_to_dcodes("0"))),
-    )
-
     for kc in keycodes:
         dpad_seq = opt_for_kc(kc)
         complexity += len(dpad_seq) * keycode_to_int(kc)
         print(dpad_seq)
+        print([(k, len(list(g))) for k, g in groupby(sorted(keycode_to_dcodes(kc)))])
+        print(
+            [
+                (k, len(list(g)))
+                for k, g in groupby(sorted(dcodes_to_dcodes(keycode_to_dcodes(kc))))
+            ]
+        )
+        print([(k, len(list(g))) for k, g in groupby(sorted(dpad_seq))])
         print(f"{ len(dpad_seq) } * { keycode_to_int(kc) }")
         print()
     print(complexity)
+
+    # TODO: calculate cost of each move and propagate upwards
+    print("*" * 200)
+    for i in range(1, 5):
+        o = opt_for_kc("0", i)
+        print(len(o), o)
+        print([(k, len(list(g))) for k, g in groupby(sorted(o))])
 
     # my_kcs = [
     #     "0",
